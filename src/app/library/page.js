@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
-  Plus, Film, X, Play, Search, Trash2, Clock, Heart, EyeOff,
+  Plus, Film, X, Play, Search, Trash2, Clock, Heart, EyeOff, Image as ImageIcon,
   LibraryBig, Bell, User, SlidersHorizontal,
   UploadCloud, Loader2,
 } from "lucide-react";
@@ -29,8 +29,9 @@ export default function Library() {
   const [showForm, setShowForm] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
-  const [form, setForm] = useState({ title: "", notes: "", file: null });
+  const [form, setForm] = useState({ title: "", notes: "", file: null, thumbnail: null });
   const fileInputRef = useRef(null);
+  const thumbInputRef = useRef(null);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/");
@@ -75,7 +76,7 @@ export default function Library() {
   }, [entries, activeFilter, query]);
 
   function resetForm() {
-    setForm({ title: "", notes: "", file: null });
+    setForm({ title: "", notes: "", file: null, thumbnail: null });
     setError("");
   }
 
@@ -121,6 +122,22 @@ export default function Library() {
 
       const driveFile = await driveRes.json();
 
+      // If a custom thumbnail was chosen, upload it too (small file, goes
+      // straight through our server — no size-limit concern like video).
+      let customThumbnail = null;
+      if (form.thumbnail) {
+        const thumbFd = new FormData();
+        thumbFd.append("file", form.thumbnail);
+        const thumbRes = await fetch("/api/drive/thumbnail-upload", {
+          method: "POST",
+          body: thumbFd,
+        });
+        if (thumbRes.ok) {
+          const thumbData = await thumbRes.json();
+          customThumbnail = thumbData.thumbnailId;
+        }
+      }
+
       const completeRes = await fetch("/api/drive/upload-complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -128,6 +145,7 @@ export default function Library() {
           fileId: driveFile.id,
           title: form.title.trim(),
           notes: form.notes.trim(),
+          customThumbnail,
         }),
       });
 
@@ -289,7 +307,13 @@ export default function Library() {
                     className="w-full flex gap-3.5 p-3.5 text-left"
                   >
                     <div className="relative w-[104px] h-[104px] rounded-2xl bg-[#DCD8CC] shrink-0 flex items-center justify-center overflow-hidden">
-                      {entry.thumbnailLink ? (
+                      {entry.customThumbnail ? (
+                        <img
+                          src={`/api/drive/thumbnail/${entry.customThumbnail}`}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
+                      ) : entry.thumbnailLink ? (
                         <img
                           src={entry.thumbnailLink}
                           alt=""
@@ -428,6 +452,24 @@ export default function Library() {
             </div>
 
             <div className="mb-3.5">
+              <label className="block text-[11px] text-[#6b6656] mb-1.5 font-medium">Cover image (optional)</label>
+              <button
+                onClick={() => thumbInputRef.current?.click()}
+                className="w-full border border-line bg-white rounded-2xl px-4 py-3.5 text-[13.5px] flex items-center gap-2.5 text-left"
+              >
+                <ImageIcon size={18} strokeWidth={1.75} className="shrink-0 text-muted" />
+                <span className="truncate">{form.thumbnail ? form.thumbnail.name : "Use a custom cover instead of the auto preview"}</span>
+              </button>
+              <input
+                ref={thumbInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => setForm({ ...form, thumbnail: e.target.files?.[0] || null })}
+              />
+            </div>
+
+            <div className="mb-3.5">
               <label className="block text-[11px] text-[#6b6656] mb-1.5 font-medium">Title</label>
               <input
                 className="w-full border border-line bg-white rounded-2xl px-4 py-3 text-[13.5px] font-sans outline-none"
@@ -458,14 +500,4 @@ export default function Library() {
               {uploading ? (
                 <>
                   <Loader2 size={16} className="animate-spin" /> Uploading to Drive…
-                </>
-              ) : (
-                "Upload"
-              )}
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-                                     }
+         
