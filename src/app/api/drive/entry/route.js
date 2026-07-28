@@ -15,7 +15,7 @@ export async function PATCH(req) {
   }
 
   try {
-    const { fileId, title, category, notes, favorite } = await req.json();
+    const { fileId, title, category, notes, favorite, watched } = await req.json();
     const folderId = await getOrCreateLibraryFolder(session.accessToken);
     const { fileId: metaFileId, entries } = await getMetadata(session.accessToken, folderId);
 
@@ -29,6 +29,7 @@ export async function PATCH(req) {
       ...(category !== undefined && { category }),
       ...(notes !== undefined && { notes }),
       ...(favorite !== undefined && { favorite }),
+      ...(watched !== undefined && { watched }),
     };
 
     await saveMetadata(session.accessToken, folderId, metaFileId, entries);
