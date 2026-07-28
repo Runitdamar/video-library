@@ -54,15 +54,15 @@ export default function WatchPage() {
 
   return (
     <div className="min-h-screen pb-12">
-      <header className="flex items-center gap-3 p-5 border-b border-line">
+      <header className="flex items-center gap-3 p-5 border-b border-line bg-paper">
         <button
           onClick={() => router.push("/library")}
-          className="flex items-center justify-center bg-transparent border border-line rounded-md p-2"
+          className="flex items-center justify-center bg-white border border-line rounded-full p-2.5"
           aria-label="Back to library"
         >
           <ChevronLeft size={18} strokeWidth={1.75} />
         </button>
-        <h1 className="font-display font-semibold text-base truncate">
+        <h1 className="font-display font-bold text-base truncate">
           {entry?.title || "Video"}
         </h1>
       </header>
