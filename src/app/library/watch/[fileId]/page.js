@@ -74,7 +74,7 @@ export default function WatchPage() {
           </p>
         ) : (
           <>
-            <VideoPlayer src={videoUrl} title={entry.title} />
+            <VideoPlayer src={`/api/drive/stream/${entry.id}`} title={entry.title} />
             {entry.notes && (
               <p className="text-[13px] text-[#6b6656] mt-4 leading-relaxed">
                 {entry.notes}
