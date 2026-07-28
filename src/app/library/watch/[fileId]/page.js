@@ -13,7 +13,6 @@ export default function WatchPage() {
   const fileId = params.fileId;
 
   const [entry, setEntry] = useState(null);
-  const [videoUrl, setVideoUrl] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,19 +23,20 @@ export default function WatchPage() {
     if (status !== "authenticated") return;
     (async () => {
       try {
-        const [listRes, urlRes] = await Promise.all([
-          fetch("/api/drive/list"),
-          fetch(`/api/drive/direct-url/${fileId}`),
-        ]);
-        const listData = await listRes.json();
-        const urlData = await urlRes.json();
-
-        if (listRes.ok) {
-          const found = listData.entries.find((e) => e.id === fileId);
+        const res = await fetch("/api/drive/list");
+        const data = await res.json();
+        if (res.ok) {
+          const found = data.entries.find((e) => e.id === fileId);
           setEntry(found || null);
-        }
-        if (urlRes.ok) {
-          setVideoUrl(urlData.url);
+
+          // Mark watched the moment the video is opened.
+          if (found && !found.watched) {
+            fetch("/api/drive/entry", {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ fileId, watched: true }),
+            }).catch((e) => console.error(e));
+          }
         }
       } finally {
         setLoading(false);
@@ -53,7 +53,7 @@ export default function WatchPage() {
   }
 
   return (
-    <div className="min-h-screen pb-12">
+    <div className="min-h-screen bg-paper pb-12">
       <header className="flex items-center gap-3 p-5 border-b border-line bg-paper">
         <button
           onClick={() => router.push("/library")}
@@ -85,4 +85,4 @@ export default function WatchPage() {
       </main>
     </div>
   );
-      }
+}
