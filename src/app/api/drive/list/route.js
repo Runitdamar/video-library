@@ -24,10 +24,10 @@ export async function GET() {
         webViewLink: f.webViewLink,
         thumbnailLink: f.thumbnailLink,
         createdTime: f.createdTime,
+        size: f.size ? Number(f.size) : null,
         title: meta.title || f.name,
-        category: meta.category || "Uncategorized",
         notes: meta.notes || "",
-        catalogNo: meta.catalogNo || 0,
+        favorite: !!meta.favorite,
       };
     });
 
