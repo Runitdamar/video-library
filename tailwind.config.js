@@ -7,16 +7,18 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        paper: "#F7F5F1",
-        ink: "#1C1B1A",
+        paper: "#EEEBE4",
+        ink: "#1A1A18",
         amber: "#C08A3E",
+        red: "#C7392B",
         line: "#E3DFD3",
-        muted: "#8a8578",
+        muted: "#8C8778",
         cardbg: "#FFFFFF",
         stamp: "#F1ECE0",
       },
       fontFamily: {
-        display: ["Bitter", "serif"],
+        display: ["'Plus Jakarta Sans'", "sans-serif"],
+        sans: ["'Plus Jakarta Sans'", "sans-serif"],
         mono: ["'IBM Plex Mono'", "monospace"],
       },
     },
