@@ -28,6 +28,7 @@ export async function GET() {
         title: meta.title || f.name,
         notes: meta.notes || "",
         favorite: !!meta.favorite,
+        watched: !!meta.watched,
       };
     });
 
