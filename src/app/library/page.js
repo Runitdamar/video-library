@@ -500,5 +500,14 @@ export default function Library() {
               {uploading ? (
                 <>
                   <Loader2 size={16} className="animate-spin" /> Uploading to Drive…
-         
-
+               </>
+              ) : (
+                "Upload"
+              )}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+                  }
