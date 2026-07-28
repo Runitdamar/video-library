@@ -4,12 +4,12 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
-  Plus, Film, X, Play, Search, Trash2, Clock,
+  Plus, Film, X, Play, Search, Trash2, Clock, Heart,
   LibraryBig, Bell, User, SlidersHorizontal,
   UploadCloud, Loader2,
 } from "lucide-react";
 
-const FILTERS = ["All", "Recent"];
+const FILTERS = ["All", "Recent", "Favorites"];
 
 function greeting() {
   const h = new Date().getHours();
@@ -58,6 +58,9 @@ export default function Library() {
     if (activeFilter === "Recent") {
       const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
       list = list.filter((e) => new Date(e.createdTime).getTime() >= sevenDaysAgo);
+    }
+    if (activeFilter === "Favorites") {
+      list = list.filter((e) => e.favorite);
     }
     return list
       .filter((e) => {
@@ -156,6 +159,22 @@ export default function Library() {
     }
   }
 
+  async function toggleFavorite(fileId, current) {
+    setEntries((prev) =>
+      prev.map((e) => (e.id === fileId ? { ...e, favorite: !current } : e))
+    );
+    try {
+      await fetch("/api/drive/entry", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileId, favorite: !current }),
+      });
+    } catch (e) {
+      console.error(e);
+      loadLibrary();
+    }
+  }
+
   function formatSize(bytes) {
     if (!bytes) return null;
     const mb = bytes / (1024 * 1024);
@@ -218,6 +237,7 @@ export default function Library() {
             }`}
           >
             {f === "Recent" && <Clock size={13} strokeWidth={2} />}
+            {f === "Favorites" && <Heart size={13} strokeWidth={2} />}
             {f}
             {f === "All" && (
               <span
@@ -310,13 +330,22 @@ export default function Library() {
                       </svg>
                       Stored in Google Drive
                     </div>
-                    <button
-                      onClick={() => handleDelete(entry.id)}
-                      className="text-[#b0aa98] p-1"
-                      aria-label="Remove"
-                    >
-                      <Trash2 size={14} strokeWidth={1.75} />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => toggleFavorite(entry.id, entry.favorite)}
+                        className={`p-1 ${entry.favorite ? "text-red" : "text-[#b0aa98]"}`}
+                        aria-label={entry.favorite ? "Remove from favorites" : "Add to favorites"}
+                      >
+                        <Heart size={14} strokeWidth={1.75} fill={entry.favorite ? "currentColor" : "none"} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(entry.id)}
+                        className="text-[#b0aa98] p-1"
+                        aria-label="Remove"
+                      >
+                        <Trash2 size={14} strokeWidth={1.75} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -432,4 +461,4 @@ export default function Library() {
       )}
     </div>
   );
-         }
+      }
