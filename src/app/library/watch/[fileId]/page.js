@@ -13,6 +13,7 @@ export default function WatchPage() {
   const fileId = params.fileId;
 
   const [entry, setEntry] = useState(null);
+  const [videoUrl, setVideoUrl] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,11 +24,19 @@ export default function WatchPage() {
     if (status !== "authenticated") return;
     (async () => {
       try {
-        const res = await fetch("/api/drive/list");
-        const data = await res.json();
-        if (res.ok) {
-          const found = data.entries.find((e) => e.id === fileId);
+        const [listRes, urlRes] = await Promise.all([
+          fetch("/api/drive/list"),
+          fetch(`/api/drive/direct-url/${fileId}`),
+        ]);
+        const listData = await listRes.json();
+        const urlData = await urlRes.json();
+
+        if (listRes.ok) {
+          const found = listData.entries.find((e) => e.id === fileId);
           setEntry(found || null);
+        }
+        if (urlRes.ok) {
+          setVideoUrl(urlData.url);
         }
       } finally {
         setLoading(false);
@@ -65,7 +74,7 @@ export default function WatchPage() {
           </p>
         ) : (
           <>
-            <VideoPlayer src={`/api/drive/stream/${entry.id}`} title={entry.title} />
+            <VideoPlayer src={videoUrl} title={entry.title} />
             {entry.notes && (
               <p className="text-[13px] text-[#6b6656] mt-4 leading-relaxed">
                 {entry.notes}
