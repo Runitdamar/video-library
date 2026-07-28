@@ -17,13 +17,12 @@ export default function Home() {
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
-      <div className="w-16 h-16 rounded-xl bg-ink text-paper flex items-center justify-center mb-6">
-        <Film size={28} strokeWidth={1.5} />
+      <div className="w-16 h-16 rounded-2xl bg-red text-white flex items-center justify-center mb-6">
+        <Film size={28} strokeWidth={1.75} />
       </div>
-      <h1 className="font-display font-bold text-3xl mb-2">The Shelf</h1>
+      <h1 className="font-display font-extrabold text-3xl mb-2 -tracking-tight">Your Library</h1>
       <p className="text-muted text-sm max-w-xs mb-8 leading-relaxed">
-        A personal video catalog. Sign in with Google — your videos are stored
-        in your own Drive, organized and browsable here.
+        Your videos. In your Drive. Sign in with Google to get started.
       </p>
 
       <button
@@ -34,7 +33,7 @@ export default function Home() {
         <svg width="18" height="18" viewBox="0 0 48 48">
           <path
             fill="#FFC107"
-            d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.1 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"
+            d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.1 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1[...]
           />
           <path
             fill="#FF3D00"
@@ -58,4 +57,4 @@ export default function Home() {
       </p>
     </main>
   );
-    }
+}
