@@ -116,7 +116,8 @@ export default function Library() {
       });
 
       if (!driveRes.ok) {
-        setError("Upload to Drive failed. Try again.");
+        const driveErrText = await driveRes.text().catch(() => "");
+        setError(`Drive upload failed (${driveRes.status}): ${driveErrText.slice(0, 200)}`);
         return;
       }
 
@@ -160,7 +161,7 @@ export default function Library() {
       setShowForm(false);
     } catch (e) {
       console.error(e);
-      setError("Upload failed. Try again.");
+      setError(`Upload failed: ${e.message || "unknown error"}`);
     } finally {
       setUploading(false);
     }
