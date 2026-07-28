@@ -4,12 +4,12 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
-  Plus, Film, X, Play, Search, Trash2, Clock, Heart,
+  Plus, Film, X, Play, Search, Trash2, Clock, Heart, EyeOff,
   LibraryBig, Bell, User, SlidersHorizontal,
   UploadCloud, Loader2,
 } from "lucide-react";
 
-const FILTERS = ["All", "Recent", "Favorites"];
+const FILTERS = ["All", "Recent", "Favorites", "Unwatched"];
 
 function greeting() {
   const h = new Date().getHours();
@@ -61,6 +61,9 @@ export default function Library() {
     }
     if (activeFilter === "Favorites") {
       list = list.filter((e) => e.favorite);
+    }
+    if (activeFilter === "Unwatched") {
+      list = list.filter((e) => !e.watched);
     }
     return list
       .filter((e) => {
@@ -238,6 +241,7 @@ export default function Library() {
           >
             {f === "Recent" && <Clock size={13} strokeWidth={2} />}
             {f === "Favorites" && <Heart size={13} strokeWidth={2} />}
+            {f === "Unwatched" && <EyeOff size={13} strokeWidth={2} />}
             {f}
             {f === "All" && (
               <span
@@ -299,6 +303,9 @@ export default function Library() {
                           <Play size={15} strokeWidth={2} fill="white" className="text-white ml-0.5" />
                         </div>
                       </div>
+                      {!entry.watched && (
+                        <div className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-red ring-2 ring-white" />
+                      )}
                     </div>
 
                     <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
@@ -461,4 +468,4 @@ export default function Library() {
       )}
     </div>
   );
-      }
+                                     }
