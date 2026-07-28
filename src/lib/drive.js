@@ -104,7 +104,23 @@ export async function uploadVideoFile(accessToken, folderId, fileName, mimeType,
   return created.data;
 }
 
+export async function uploadThumbnailImage(accessToken, folderId, fileName, mimeType, buffer) {
+  const drive = driveClient(accessToken);
+  const created = await drive.files.create({
+    requestBody: {
+      name: fileName,
+      parents: [folderId],
+    },
+    media: {
+      mimeType,
+      body: buffer,
+    },
+    fields: "id",
+  });
+  return created.data.id;
+}
+
 export async function deleteVideoFile(accessToken, fileId) {
   const drive = driveClient(accessToken);
   await drive.files.delete({ fileId });
-    }
+}
