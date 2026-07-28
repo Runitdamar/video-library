@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
-  Plus, Film, X, ExternalLink, Search, Trash2,
+  Plus, Film, X, Play, Search, Trash2, Edit,
   FolderOpen, LogOut, UploadCloud, Loader2,
 } from "lucide-react";
 
@@ -240,14 +240,12 @@ export default function Library() {
                         year: "numeric", month: "short", day: "numeric",
                       })}
                     </span>
-                    <a
-                      href={entry.webViewLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      onClick={() => router.push(`/library/watch/${entry.id}`)}
                       className="flex items-center gap-1 text-[11.5px] font-medium border-b border-amber pb-px"
                     >
-                      Watch <ExternalLink size={12} strokeWidth={2} />
-                    </a>
+                      Watch <Play size={12} strokeWidth={2} />
+                    </button>
                   </div>
                 </div>
               </div>
