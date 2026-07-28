@@ -29,6 +29,7 @@ export async function GET() {
         notes: meta.notes || "",
         favorite: !!meta.favorite,
         watched: !!meta.watched,
+        customThumbnail: meta.customThumbnail || null,
       };
     });
 
@@ -37,4 +38,4 @@ export async function GET() {
     console.error("Drive list error", err);
     return NextResponse.json({ error: "Failed to load library" }, { status: 500 });
   }
-        }
+}
