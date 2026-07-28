@@ -81,7 +81,7 @@ export async function listVideoFiles(accessToken, folderId) {
   const drive = driveClient(accessToken);
   const res = await drive.files.list({
     q: `'${folderId}' in parents and trashed=false and mimeType contains 'video/'`,
-    fields: "files(id, name, mimeType, createdTime, webViewLink, thumbnailLink, videoMediaMetadata)",
+    fields: "files(id, name, mimeType, createdTime, webViewLink, thumbnailLink, videoMediaMetadata, size)",
     orderBy: "createdTime desc",
     spaces: "drive",
   });
