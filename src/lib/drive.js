@@ -50,7 +50,23 @@ export async function getMetadata(accessToken, folderId) {
 
   const fileId = existing.data.files[0].id;
   const res = await drive.files.get({ fileId, alt: "media" });
-  return { fileId, entries: res.data || {} };
+
+  // The googleapis client sometimes returns this as a raw string instead of
+  // a parsed object — normalize it so callers always get a real object.
+  let entries = res.data;
+  if (typeof entries === "string") {
+    try {
+      entries = JSON.parse(entries);
+    } catch (e) {
+      console.error("Failed to parse metadata file, resetting", e);
+      entries = {};
+    }
+  }
+  if (!entries || typeof entries !== "object") {
+    entries = {};
+  }
+
+  return { fileId, entries };
 }
 
 export async function saveMetadata(accessToken, folderId, fileId, entries) {
