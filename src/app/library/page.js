@@ -185,7 +185,7 @@ export default function Library() {
       setShowForm(false);
     } catch (e) {
       console.error(e);
-      setError(`Upload failed: ${e.message || "unknown error"}`);
+      setError(`Upload failed: ${e.message || "unknown error"} | ${e.name || ""} | ${String(e)}`);
     } finally {
       setUploading(false);
     }
