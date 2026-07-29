@@ -119,12 +119,12 @@ export default function Library() {
           method: "PUT",
           headers: { "Content-Type": form.file.type || "video/mp4" },
           body: form.file,
-          mode: "no-cors",
         });
       } catch (putErr) {
-        // Even the "fire and forget" attempt can throw in some browsers.
-        // That's fine — we still check with our server next regardless.
-        console.error("PUT threw (expected in some cases)", putErr);
+        // This throws due to CORS even when the upload succeeded — that's
+        // expected and not itself a failure. We confirm success next by
+        // asking our own server, which isn't subject to CORS.
+        console.error("PUT threw (expected due to CORS)", putErr);
       }
 
       // Give Drive a brief moment to finish registering the file, then ask
