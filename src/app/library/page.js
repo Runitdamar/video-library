@@ -146,6 +146,7 @@ export default function Library() {
       // If a custom thumbnail was chosen, upload it too (small file, goes
       // straight through our server — no size-limit concern like video).
       let customThumbnail = null;
+      let thumbnailWarning = "";
       if (form.thumbnail) {
         const thumbFd = new FormData();
         thumbFd.append("file", form.thumbnail);
@@ -156,6 +157,10 @@ export default function Library() {
         if (thumbRes.ok) {
           const thumbData = await thumbRes.json();
           customThumbnail = thumbData.thumbnailId;
+        } else {
+          const thumbErrText = await thumbRes.text().catch(() => "");
+          console.error("Thumbnail upload failed", thumbRes.status, thumbErrText);
+          thumbnailWarning = ` (cover image failed: ${thumbRes.status})`;
         }
       }
 
@@ -177,6 +182,11 @@ export default function Library() {
       }
 
       await loadLibrary();
+      if (thumbnailWarning) {
+        setError(`Video saved${thumbnailWarning}`);
+        setUploading(false);
+        return;
+      }
       resetForm();
       setShowForm(false);
     } catch (e) {
