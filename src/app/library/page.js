@@ -121,7 +121,31 @@ export default function Library() {
         return;
       }
 
-      const driveFile = await driveRes.json();
+      // Try to read the file ID from Drive's response. If that fails for
+      // any reason (some mobile connections drop right after a big upload
+      // finishes), fall back to re-fetching the file list and finding the
+      // most recently created file with a matching name — the upload itself
+      // already succeeded at this point either way.
+      let uploadedFileId = null;
+      try {
+        const driveFile = await driveRes.json();
+        uploadedFileId = driveFile.id;
+      } catch (parseErr) {
+        console.error("Could not parse Drive response, falling back", parseErr);
+      }
+
+      if (!uploadedFileId) {
+        const listRes = await fetch("/api/drive/list");
+        const listData = await listRes.json();
+        const match = listData.entries?.find((e) => e.name === form.file.name);
+        uploadedFileId = match?.id || null;
+      }
+
+      if (!uploadedFileId) {
+        setError("Video uploaded, but couldn't finish saving details. Check your library — it may already be there.");
+        await loadLibrary();
+        return;
+      }
 
       // If a custom thumbnail was chosen, upload it too (small file, goes
       // straight through our server — no size-limit concern like video).
@@ -143,7 +167,7 @@ export default function Library() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          fileId: driveFile.id,
+          fileId: uploadedFileId,
           title: form.title.trim(),
           notes: form.notes.trim(),
           customThumbnail,
