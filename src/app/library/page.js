@@ -109,40 +109,36 @@ export default function Library() {
         return;
       }
 
-      const driveRes = await fetch(initData.uploadUrl, {
-        method: "PUT",
-        headers: { "Content-Type": form.file.type || "video/mp4" },
-        body: form.file,
-      });
-
-      if (!driveRes.ok) {
-        const driveErrText = await driveRes.text().catch(() => "");
-        setError(`Drive upload failed (${driveRes.status}): ${driveErrText.slice(0, 200)}`);
-        return;
-      }
-
-      // Try to read the file ID from Drive's response. If that fails for
-      // any reason (some mobile connections drop right after a big upload
-      // finishes), fall back to re-fetching the file list and finding the
-      // most recently created file with a matching name — the upload itself
-      // already succeeded at this point either way.
-      let uploadedFileId = null;
+      // We deliberately do NOT try to read anything back from this request.
+      // Google's upload endpoint blocks the browser from reading its own
+      // response here (a CORS restriction), even though the upload itself
+      // succeeds. So we fire the upload and then ask our own server (which
+      // isn't subject to that restriction) to confirm it landed.
       try {
-        const driveFile = await driveRes.json();
-        uploadedFileId = driveFile.id;
-      } catch (parseErr) {
-        console.error("Could not parse Drive response, falling back", parseErr);
+        await fetch(initData.uploadUrl, {
+          method: "PUT",
+          headers: { "Content-Type": form.file.type || "video/mp4" },
+          body: form.file,
+          mode: "no-cors",
+        });
+      } catch (putErr) {
+        // Even the "fire and forget" attempt can throw in some browsers.
+        // That's fine — we still check with our server next regardless.
+        console.error("PUT threw (expected in some cases)", putErr);
       }
 
-      if (!uploadedFileId) {
-        const listRes = await fetch("/api/drive/list");
-        const listData = await listRes.json();
-        const match = listData.entries?.find((e) => e.name === form.file.name);
-        uploadedFileId = match?.id || null;
-      }
+      // Give Drive a brief moment to finish registering the file, then ask
+      // our server to find it by name — server-to-server calls aren't
+      // blocked by CORS the way browser calls are.
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      const listRes = await fetch("/api/drive/list");
+      const listData = await listRes.json();
+      const match = listData.entries?.find((e) => e.name === form.file.name);
+      const uploadedFileId = match?.id || null;
 
       if (!uploadedFileId) {
-        setError("Video uploaded, but couldn't finish saving details. Check your library — it may already be there.");
+        setError("Upload may still be finishing — check your library in a moment, or try again.");
         await loadLibrary();
         return;
       }
@@ -185,7 +181,7 @@ export default function Library() {
       setShowForm(false);
     } catch (e) {
       console.error(e);
-      setError(`Upload failed: ${e.message || "unknown error"} | ${e.name || ""} | ${String(e)}`);
+      setError("Upload failed. Try again.");
     } finally {
       setUploading(false);
     }
