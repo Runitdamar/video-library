@@ -118,7 +118,7 @@ export default function Library() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            fileId: `youtube:${youtubeId}`,
+            fileId: `youtube-${youtubeId}`,
             title: form.title.trim(),
             notes: form.notes.trim(),
             source: "youtube",
@@ -458,7 +458,7 @@ export default function Library() {
                       {entry.source === "youtube" ? (
                         <>
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="#FF0000">
-                            <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.6 3.6 12 3.6 12 3.6s-7.6 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.8.5 9.4.5 9.4.5s7.6 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.6V8.4l6.3 3.6Z"/>
+                            <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.6 3.6 12 3.6 12 3.6s-7.6 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.8.5 9.4.5 9.4.5s7.6 0[...]
                           </svg>
                           YouTube
                         </>
@@ -503,138 +503,4 @@ export default function Library() {
           <LibraryBig size={19} strokeWidth={2} />
           <span className="text-[9.5px] font-medium">Library</span>
         </button>
-        <button className="flex flex-col items-center gap-0.5 px-3 py-1 text-[#6f6c62]">
-          <Search size={19} strokeWidth={1.75} />
-          <span className="text-[9.5px]">Search</span>
-        </button>
-        <button
-          onClick={() => setShowForm(true)}
-          className="w-12 h-12 rounded-full bg-red flex items-center justify-center -mt-4 shadow-md shrink-0"
-          aria-label="Upload video"
-        >
-          <Plus size={22} strokeWidth={2.25} className="text-white" />
-        </button>
-        <button className="flex flex-col items-center gap-0.5 px-3 py-1 text-[#6f6c62]">
-          <Bell size={19} strokeWidth={1.75} />
-          <span className="text-[9.5px]">Activity</span>
-        </button>
-        <button className="flex flex-col items-center gap-0.5 px-3 py-1 text-[#6f6c62]">
-          <User size={19} strokeWidth={1.75} />
-          <span className="text-[9.5px]">Profile</span>
-        </button>
-      </nav>
 
-      {/* Upload modal */}
-      {showForm && (
-        <div
-          className="fixed inset-0 bg-black/40 flex items-end justify-center z-50"
-          onClick={() => { if (!uploading) { setShowForm(false); resetForm(); } }}
-        >
-          <div
-            className="bg-paper w-full max-w-[480px] rounded-t-[28px] p-5 pb-7 max-h-[88vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <p className="text-[10.5px] text-red font-semibold uppercase tracking-wide">New upload</p>
-                <h2 className="font-display font-bold text-xl mt-0.5">Add to library</h2>
-              </div>
-              <button
-                onClick={() => { if (!uploading) { setShowForm(false); resetForm(); } }}
-                className="bg-[#EFEAE0] rounded-full w-[30px] h-[30px] flex items-center justify-center shrink-0"
-              >
-                <X size={18} strokeWidth={1.75} />
-              </button>
-            </div>
-
-            <div className="mb-3.5">
-              <label className="block text-[11px] text-[#6b6656] mb-1.5 font-medium">YouTube link (optional)</label>
-              <input
-                className="w-full border border-line bg-white rounded-2xl px-4 py-3 text-[13.5px] font-sans outline-none"
-                placeholder="Paste a YouTube video URL"
-                value={form.youtubeUrl}
-                onChange={(e) => setForm({ ...form, youtubeUrl: e.target.value })}
-              />
-            </div>
-
-            <div className="mb-3.5">
-              <label className="block text-[11px] text-[#6b6656] mb-1.5 font-medium">
-                Video file{form.youtubeUrl.trim() ? " (not needed with a YouTube link)" : ""}
-              </label>
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={!!form.youtubeUrl.trim()}
-                className="w-full border border-line bg-white rounded-2xl px-4 py-3.5 text-[13.5px] flex items-center gap-2.5 text-left disabled:opacity-50"
-              >
-                <UploadCloud size={18} strokeWidth={1.75} className="shrink-0 text-muted" />
-                <span className="truncate">{form.file ? form.file.name : "Choose a video from your phone"}</span>
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="video/*"
-                className="hidden"
-                onChange={(e) => setForm({ ...form, file: e.target.files?.[0] || null })}
-              />
-            </div>
-
-            <div className="mb-3.5">
-              <label className="block text-[11px] text-[#6b6656] mb-1.5 font-medium">Cover image (optional)</label>
-              <button
-                onClick={() => thumbInputRef.current?.click()}
-                className="w-full border border-line bg-white rounded-2xl px-4 py-3.5 text-[13.5px] flex items-center gap-2.5 text-left"
-              >
-                <ImageIcon size={18} strokeWidth={1.75} className="shrink-0 text-muted" />
-                <span className="truncate">{form.thumbnail ? form.thumbnail.name : "Use a custom cover instead of the auto preview"}</span>
-              </button>
-              <input
-                ref={thumbInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => setForm({ ...form, thumbnail: e.target.files?.[0] || null })}
-              />
-            </div>
-
-            <div className="mb-3.5">
-              <label className="block text-[11px] text-[#6b6656] mb-1.5 font-medium">Title</label>
-              <input
-                className="w-full border border-line bg-white rounded-2xl px-4 py-3 text-[13.5px] font-sans outline-none"
-                placeholder="e.g. Weekend trip — Big Sur"
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-              />
-            </div>
-
-            <div className="mb-3.5">
-              <label className="block text-[11px] text-[#6b6656] mb-1.5 font-medium">Notes (optional)</label>
-              <textarea
-                className="w-full border border-line bg-white rounded-2xl px-4 py-3 text-[13.5px] font-sans outline-none resize-y"
-                rows={3}
-                placeholder="Anything worth remembering about it"
-                value={form.notes}
-                onChange={(e) => setForm({ ...form, notes: e.target.value })}
-              />
-            </div>
-
-            {error && <p className="text-[#B24444] text-xs mb-3">{error}</p>}
-
-            <button
-              onClick={handleUpload}
-              disabled={uploading}
-              className="w-full bg-red text-white rounded-2xl py-4 text-[14px] font-semibold flex items-center justify-center gap-2 disabled:opacity-70"
-            >
-              {uploading ? (
-                <>
-                  <Loader2 size={16} className="animate-spin" /> Uploading to Drive…
-                </>
-              ) : (
-                "Upload"
-              )}
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
