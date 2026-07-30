@@ -16,7 +16,7 @@ export async function GET() {
       getMetadata(session.accessToken, folderId),
     ]);
 
-    const entries = files.map((f) => {
+    const driveEntries = files.map((f) => {
       const meta = metadata.entries[f.id] || {};
       return {
         id: f.id,
@@ -30,8 +30,32 @@ export async function GET() {
         favorite: !!meta.favorite,
         watched: !!meta.watched,
         customThumbnail: meta.customThumbnail || null,
+        source: "drive",
       };
     });
+
+    // YouTube links live only in the metadata file — there's no
+    // corresponding Drive file to list, so we add them here directly.
+    const driveFileIds = new Set(files.map((f) => f.id));
+    const youtubeEntries = Object.entries(metadata.entries)
+      .filter(([id, meta]) => meta.source === "youtube" && !driveFileIds.has(id))
+      .map(([id, meta]) => ({
+        id,
+        name: meta.title,
+        webViewLink: `https://www.youtube.com/watch?v=${meta.youtubeId}`,
+        thumbnailLink: `https://img.youtube.com/vi/${meta.youtubeId}/hqdefault.jpg`,
+        createdTime: meta.createdTime || new Date().toISOString(),
+        size: null,
+        title: meta.title || "Untitled",
+        notes: meta.notes || "",
+        favorite: !!meta.favorite,
+        watched: !!meta.watched,
+        customThumbnail: meta.customThumbnail || null,
+        source: "youtube",
+        youtubeId: meta.youtubeId,
+      }));
+
+    const entries = [...driveEntries, ...youtubeEntries];
 
     return NextResponse.json({ entries, folderId });
   } catch (err) {
