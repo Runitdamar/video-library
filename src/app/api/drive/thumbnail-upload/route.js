@@ -36,6 +36,9 @@ export async function POST(req) {
     return NextResponse.json({ success: true, thumbnailId });
   } catch (err) {
     console.error("Thumbnail upload error", err);
-    return NextResponse.json({ error: "Thumbnail upload failed" }, { status: 500 });
+    return NextResponse.json(
+      { error: `Thumbnail upload failed: ${err.message || String(err)}` },
+      { status: 500 }
+    );
   }
-                                                          }
+}
