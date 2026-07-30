@@ -15,7 +15,7 @@ export async function PATCH(req) {
   }
 
   try {
-    const { fileId, title, category, notes, favorite, watched } = await req.json();
+    const { fileId, title, category, notes, favorite, watched, customThumbnail } = await req.json();
     const folderId = await getOrCreateLibraryFolder(session.accessToken);
     const { fileId: metaFileId, entries } = await getMetadata(session.accessToken, folderId);
 
@@ -30,6 +30,7 @@ export async function PATCH(req) {
       ...(notes !== undefined && { notes }),
       ...(favorite !== undefined && { favorite }),
       ...(watched !== undefined && { watched }),
+      ...(customThumbnail !== undefined && { customThumbnail }),
     };
 
     await saveMetadata(session.accessToken, folderId, metaFileId, entries);
@@ -60,4 +61,4 @@ export async function DELETE(req) {
     console.error("Delete error", err);
     return NextResponse.json({ error: "Delete failed" }, { status: 500 });
   }
-      }
+}
