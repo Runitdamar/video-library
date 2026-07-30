@@ -29,6 +29,7 @@ export default function Library() {
   const [showForm, setShowForm] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
+  const [thumbnailDebug, setThumbnailDebug] = useState("");
   const [form, setForm] = useState({ title: "", notes: "", file: null, thumbnail: null });
   const fileInputRef = useRef(null);
   const thumbInputRef = useRef(null);
@@ -143,27 +144,10 @@ export default function Library() {
         return;
       }
 
-      // If a custom thumbnail was chosen, upload it too (small file, goes
-      // straight through our server — no size-limit concern like video).
-      let customThumbnail = null;
-      let thumbnailWarning = "";
-      if (form.thumbnail) {
-        const thumbFd = new FormData();
-        thumbFd.append("file", form.thumbnail);
-        const thumbRes = await fetch("/api/drive/thumbnail-upload", {
-          method: "POST",
-          body: thumbFd,
-        });
-        if (thumbRes.ok) {
-          const thumbData = await thumbRes.json();
-          customThumbnail = thumbData.thumbnailId;
-        } else {
-          const thumbErrText = await thumbRes.text().catch(() => "");
-          console.error("Thumbnail upload failed", thumbRes.status, thumbErrText);
-          thumbnailWarning = ` (cover image failed: ${thumbRes.status})`;
-        }
-      }
-
+      // Custom thumbnails are handled entirely separately, after this
+      // upload is confirmed saved — see handleAddThumbnail below. Keeping
+      // them apart means a thumbnail issue can never affect the video
+      // upload, and we can debug/fix each independently.
       const completeRes = await fetch("/api/drive/upload-complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -171,22 +155,26 @@ export default function Library() {
           fileId: uploadedFileId,
           title: form.title.trim(),
           notes: form.notes.trim(),
-          customThumbnail,
         }),
       });
 
-      if (!completeRes.ok) {
-        const completeData = await completeRes.json();
-        setError(completeData.error || "Uploaded, but failed to save details.");
-        return;
-      }
+      if (!completeRes.ok) {  
+        const completeData = await completeRes.json();  
+        setError(completeData.error || "Uploaded, but failed to save details.");  
+        return;  
+      }  
+
+      // If a cover image was chosen, attempt it now as a separate, isolated  
+      // step — failures here never affect the video/title that's already  
+      // safely saved.  
+      if (form.thumbnail) {  
+        await handleAddThumbnail(uploadedFileId, form.thumbnail);  
+        await loadLibrary();  
+        setUploading(false);  
+        return; // stay open so the debug line above is readable  
+      }  
 
       await loadLibrary();
-      if (thumbnailWarning) {
-        setError(`Video saved${thumbnailWarning}`);
-        setUploading(false);
-        return;
-      }
       resetForm();
       setShowForm(false);
     } catch (e) {
@@ -195,6 +183,45 @@ export default function Library() {
     } finally {
       setUploading(false);
     }
+  }
+
+  // Fully isolated from the main video upload — this can fail without ever
+  // touching the video/title, which is already safely saved by the time
+  // this runs. Any bug here is contained entirely to this one function.
+  async function handleAddThumbnail(fileId, imageFile) {
+    setThumbnailDebug("Uploading cover image…");
+    try {
+      const thumbFd = new FormData();
+      thumbFd.append("file", imageFile);
+
+      const thumbRes = await fetch("/api/drive/thumbnail-upload", {  
+        method: "POST",  
+        body: thumbFd,  
+      });  
+
+      const thumbRawText = await thumbRes.text();  
+      setThumbnailDebug(`thumbnail-upload → ${thumbRes.status}: ${thumbRawText.slice(0, 150)}`);  
+
+      if (!thumbRes.ok) return;  
+
+      const thumbData = JSON.parse(thumbRawText);  
+      const thumbnailId = thumbData.thumbnailId;  
+      if (!thumbnailId) {  
+        setThumbnailDebug(`thumbnail-upload succeeded but no thumbnailId in response: ${thumbRawText.slice(0, 150)}`);  
+        return;  
+      }  
+
+      const attachRes = await fetch("/api/drive/entry", {  
+        method: "PATCH",  
+        headers: { "Content-Type": "application/json" },  
+        body: JSON.stringify({ fileId, customThumbnail: thumbnailId }),  
+      });  
+      const attachRawText = await attachRes.text();  
+      setThumbnailDebug(`entry PATCH → ${attachRes.status}: ${attachRawText.slice(0, 150)}`);  
+    } catch (thumbErr) {  
+      setThumbnailDebug(`Cover image step threw: ${thumbErr.message}`);  
+    }
+
   }
 
   async function handleDelete(fileId) {
@@ -522,6 +549,7 @@ export default function Library() {
             </div>
 
             {error && <p className="text-[#B24444] text-xs mb-3">{error}</p>}
+            {thumbnailDebug && <p className="text-[#8C6D1F] text-[11px] mb-3 break-words">{thumbnailDebug}</p>}
 
             <button
               onClick={handleUpload}
