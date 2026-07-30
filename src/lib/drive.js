@@ -1,4 +1,5 @@
 import { google } from "googleapis";
+import { Readable } from "stream";
 
 const LIBRARY_FOLDER_NAME = "Video Library";
 const METADATA_FILE_NAME = ".video-library-metadata.json";
@@ -122,6 +123,10 @@ export async function uploadVideoFile(accessToken, folderId, fileName, mimeType,
 
 export async function uploadThumbnailImage(accessToken, folderId, fileName, mimeType, buffer) {
   const drive = driveClient(accessToken);
+  // The googleapis client needs media.body to be a Readable stream, not a
+  // raw Buffer — passing a Buffer directly is a known failure mode.
+  const stream = Readable.from(buffer);
+
   const created = await drive.files.create({
     requestBody: {
       name: fileName,
@@ -129,10 +134,11 @@ export async function uploadThumbnailImage(accessToken, folderId, fileName, mime
     },
     media: {
       mimeType,
-      body: buffer,
+      body: stream,
     },
     fields: "id",
   });
+
   return created.data.id;
 }
 
